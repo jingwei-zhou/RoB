@@ -1,0 +1,19 @@
+{
+  "name": "买房还是租房 · Rent vs Buy",
+  "short_name": "租买计算器",
+  "description": "把过户费、维修、地税、2026 年税务规则和机会成本都算进来的租买对比计算器。A full-cost, after-tax rent vs buy calculator.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F7F6F3",
+  "theme_color": "#0D9488",
+  "lang": "zh-CN",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

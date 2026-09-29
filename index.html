@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>买房还是租房？全成本计算器 · Rent vs Buy Calculator</title>
 <meta name="description" content="买房还是租房？把过户费、维修、地税、税务抵扣、首付机会成本全部算进来的美国租买对比计算器。A full-cost, after-tax rent vs buy calculator for the U.S.">
 <meta property="og:type" content="website">
@@ -10,6 +10,12 @@
 <meta property="og:description" content="把所有隐性成本、2026 年税务规则和机会成本都算进来，看你住几年买房才划算。">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#0D9488">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="租买计算器">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D9488'/%3E%3Cpath d='M7 16.5 16 8l9 8.5V25h-6.2v-6h-5.6v6H7z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,8 +81,36 @@ a{color:var(--rent)}
 .btn:hover{border-color:var(--rent);color:var(--rent)}
 
 /* ---------- shell ---------- */
-.wrap{max-width:1440px;margin:0 auto;padding:0 clamp(16px,3vw,40px) 88px}
-.topbar{display:flex;align-items:center;gap:10px;padding:14px 0 0;flex-wrap:wrap}
+.wrap{
+  max-width:1440px;margin:0 auto;
+  padding:0 max(clamp(16px,3vw,40px), env(safe-area-inset-right)) calc(88px + env(safe-area-inset-bottom)) max(clamp(16px,3vw,40px), env(safe-area-inset-left));
+}
+.topbar{display:flex;align-items:center;gap:10px;padding:max(14px, env(safe-area-inset-top)) 0 0;flex-wrap:wrap}
+.btn.primary{background:var(--rent);border-color:var(--rent);color:#fff}
+.btn.primary:hover{color:#fff;filter:brightness(1.08)}
+
+/* ---------- install (PWA) ---------- */
+.installbar{
+  display:flex;align-items:center;gap:12px;margin-top:14px;padding:10px 12px;
+  background:var(--surface);border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow);
+}
+.installbar[hidden], .sheet[hidden], .foot-install[hidden]{display:none}
+.installbar .ic{width:36px;height:36px;border-radius:8px;flex:none;display:block}
+.installbar .tx{flex:1;min-width:0;font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.installbar .tx b{display:block;color:var(--ink);font-size:13.5px;font-weight:600}
+.installbar .x{background:none;border:0;color:var(--ink-3);font-size:20px;line-height:1;padding:4px 6px;cursor:pointer}
+.sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);padding:16px}
+@media (min-width:640px){.sheet{align-items:center}}
+.sheet-card{
+  width:100%;max-width:420px;background:var(--surface);color:var(--ink);border-radius:12px;
+  padding:20px 20px calc(18px + env(safe-area-inset-bottom));box-shadow:0 20px 60px -20px rgba(0,0,0,.5);
+}
+.sheet-card h3{font-size:17px;font-weight:600;margin-bottom:12px}
+.sheet-card ol{margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.7;color:var(--ink-2)}
+.sheet-card ol b{color:var(--ink);font-weight:600}
+.sheet-card .shareic{display:inline-block;width:15px;height:15px;vertical-align:-2px;margin:0 2px}
+.sheet-card .btn{width:100%;padding:10px;font-size:12px}
+.foot-install{background:none;border:0;padding:0;color:var(--rent);font:inherit;text-decoration:underline;cursor:pointer}
 .brand{display:flex;align-items:center;gap:8px;margin-right:auto}
 .brand svg{width:20px;height:20px;display:block}
 .brand .eyebrow{color:var(--ink-2)}
@@ -237,7 +271,7 @@ footer p+p{margin-top:10px}
 
 /* ---------- mobile verdict bar ---------- */
 .mbar{
-  position:fixed;left:12px;right:12px;bottom:12px;z-index:20;display:none;
+  position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:20;display:none;
   align-items:center;gap:12px;padding:11px 14px;border-radius:6px;
   background:var(--ink);color:var(--ground);box-shadow:0 10px 30px -10px rgba(0,0,0,.45);
   font-size:13.5px;line-height:1.35;text-decoration:none;
@@ -263,6 +297,13 @@ footer p+p{margin-top:10px}
     </div>
     <button type="button" class="btn" id="share"><span class="zh">复制分享链接</span><span class="en">Copy share link</span></button>
     <button type="button" class="btn" id="theme" aria-label="Toggle dark mode" title="Light / Dark"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" style="display:block"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.75a6.25 6.25 0 0 1 0 12.5z" fill="currentColor"/></svg></button>
+  </div>
+
+  <div class="installbar" id="installbar" hidden>
+    <svg class="ic" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0D9488"/><path d="M7 16.5 16 8l9 8.5V25h-6.2v-6h-5.6v6H7z" fill="#fff"/><rect x="13.2" y="19" width="5.6" height="6" fill="#C2410C"/></svg>
+    <div class="tx"><b><span class="zh">装到手机桌面</span><span class="en">Add to your home screen</span></b><span class="zh">全屏打开，没网也能用</span><span class="en">Opens full-screen like an app and works offline</span></div>
+    <button type="button" class="btn primary" id="install"><span class="zh">安装</span><span class="en">Install</span></button>
+    <button type="button" class="x" id="install-x" aria-label="Close">×</button>
   </div>
 
   <header class="masthead">
@@ -375,8 +416,26 @@ footer p+p{margin-top:10px}
         <p class="en">Method: monthly amortization engine, summarized by year. Buy-side value = home value − loan balance − selling costs − capital-gains tax above the home-sale exclusion + the buyer's investment portfolio (after tax). Rent-side value = the renter's portfolio (after tax). The renter starts with the down payment + buying closing costs invested; after that, each month whichever side spends less invests the difference at the same return. Taxes follow 2026 federal rules (OBBBA): standard deduction $16,100 single / $32,200 joint (indexed to cost inflation); SALT cap $40,400, +1% a year through 2029, reduced by 30% of MAGI above $505K (floor $10K), reverting to $10,000 in 2030; mortgage-interest deduction on up to $750K of debt; itemized deductions worth 35% in the 37% bracket; PMI treated as deductible interest (phased out at AGI $100K–$110K). Home-sale exclusion $250K / $500K after 2 years. State: capital gains taxed at your state rate; optional New Jersey–style property-tax deduction (renters at 18% of rent). Not modeled: state mortgage-interest deductions, annual dividend tax drag, refinancing, assessment caps (e.g., California Prop 13), vacancy and moving costs.</p>
         <p class="zh">这是一个用来自己调参数的测算工具，不构成税务、法律或投资建议。做决定前请让会计师核对你的实际税率和地税评估值。默认利率来自 <a href="https://www.freddiemac.com/pmms" target="_blank" rel="noopener">Freddie Mac PMMS</a>，税务参数来自 <a href="https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill" target="_blank" rel="noopener">IRS 2026 年通胀调整</a>。所有计算都在你的浏览器里完成，不上传任何数据。</p>
         <p class="en">A calculator for exploring your own assumptions — not tax, legal or investment advice. Have a CPA check your actual tax rates and assessed value before deciding. Default rate from <a href="https://www.freddiemac.com/pmms" target="_blank" rel="noopener">Freddie Mac PMMS</a>; tax parameters from the <a href="https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill" target="_blank" rel="noopener">IRS 2026 inflation adjustments</a>. Everything runs in your browser; nothing is uploaded.</p>
+        <p><button type="button" class="foot-install" id="foot-install" hidden><span class="zh">把这个计算器安装到手机桌面 →</span><span class="en">Install this calculator on your phone →</span></button></p>
       </footer>
     </main>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-t">
+  <div class="sheet-card">
+    <h3 id="sheet-t"><span class="zh">安装到手机桌面</span><span class="en">Install on your phone</span></h3>
+    <ol id="sheet-ios">
+      <li><span class="zh">点浏览器的<b>「分享」</b>按钮</span><span class="en">Tap the <b>Share</b> button</span> <svg class="shareic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v8.5M5 4.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 7H4v7.5h8V7h-1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="zh">（Safari 在底部，Chrome 在地址栏右侧）</span><span class="en">(bottom bar in Safari, next to the address bar in Chrome)</span></li>
+      <li><span class="zh">往下找到<b>「添加到主屏幕」</b></span><span class="en">Scroll down and choose <b>Add to Home Screen</b></span></li>
+      <li><span class="zh">点右上角<b>「添加」</b>，桌面上就会出现图标</span><span class="en">Tap <b>Add</b> — the icon appears on your home screen</span></li>
+    </ol>
+    <ol id="sheet-other" hidden>
+      <li><span class="zh">打开浏览器菜单 <b>⋮</b></span><span class="en">Open the browser menu <b>⋮</b></span></li>
+      <li><span class="zh">选择<b>「安装应用」</b>或<b>「添加到主屏幕」</b></span><span class="en">Choose <b>Install app</b> or <b>Add to Home screen</b></span></li>
+      <li><span class="zh">电脑上的 Chrome / Edge 也可以点地址栏右侧的安装图标</span><span class="en">On desktop Chrome / Edge, use the install icon in the address bar</span></li>
+    </ol>
+    <button type="button" class="btn" id="sheet-close"><span class="zh">知道了</span><span class="en">Got it</span></button>
   </div>
 </div>
 
@@ -1142,6 +1201,44 @@ if(window.IntersectionObserver){
   new IntersectionObserver(function(es){
     es.forEach(function(e){ $("mbar").classList.toggle("show", e.isIntersecting); });
   }, {rootMargin:"0px 0px -35% 0px"}).observe($("console"));
+}
+
+/* ============================ INSTALL (PWA) ============================ */
+(function(){
+  var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  var ua = navigator.userAgent || "";
+  var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isMobile = isIOS || /android|mobile/i.test(ua);
+  var deferred = null;
+  var bar = $("installbar"), foot = $("foot-install"), sheet = $("sheet");
+  if(standalone){ document.documentElement.classList.add("standalone"); return; }
+  function show(){
+    foot.hidden = false;
+    if(isMobile && store("rvb-install-x") !== "1") bar.hidden = false;
+  }
+  function openSheet(){
+    $("sheet-ios").hidden = !isIOS;
+    $("sheet-other").hidden = isIOS;
+    sheet.hidden = false;
+  }
+  function install(){
+    if(deferred){
+      deferred.prompt();
+      deferred.userChoice.then(function(){ deferred = null; }, function(){ deferred = null; });
+    } else openSheet();
+  }
+  window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferred = e; show(); });
+  window.addEventListener("appinstalled", function(){ bar.hidden = true; foot.hidden = true; deferred = null; });
+  $("install").addEventListener("click", install);
+  foot.addEventListener("click", install);
+  $("install-x").addEventListener("click", function(){ bar.hidden = true; store("rvb-install-x", "1"); });
+  $("sheet-close").addEventListener("click", function(){ sheet.hidden = true; });
+  sheet.addEventListener("click", function(ev){ if(ev.target === sheet) sheet.hidden = true; });
+  document.addEventListener("keydown", function(ev){ if(ev.key === "Escape") sheet.hidden = true; });
+  if(isMobile) show(); else foot.hidden = false;
+})();
+if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")){
+  window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
 }
 
 var initLang = urlOpts.lang || store("rvb-lang") || ((navigator.language || "").toLowerCase().indexOf("zh") === 0 ? "zh" : "en");
