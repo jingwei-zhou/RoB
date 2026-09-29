@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>买房还是租房？全成本计算器 · Rent vs Buy Calculator</title>
+<meta name="description" content="买房还是租房？把过户费、维修、地税、税务抵扣、首付机会成本全部算进来的美国租买对比计算器。A full-cost, after-tax rent vs buy calculator for the U.S.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="买房还是租房？全成本计算器 · Rent vs Buy Calculator">
+<meta property="og:description" content="把所有隐性成本、2026 年税务规则和机会成本都算进来，看你住几年买房才划算。">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0D9488">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D9488'/%3E%3Cpath d='M7 16.5 16 8l9 8.5V25h-6.2v-6h-5.6v6H7z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#F7F6F3; --surface:#FFFFFF; --surface-2:#F1EFEA;
+  --ink:#17181A; --ink-2:#5A5D63; --ink-3:#80848C;
+  --rule:#E4E1DA; --rule-2:#D3CFC5;
+  --buy:#C2410C; --rent:#0D9488;
+  --buy-soft:rgba(194,65,12,.10); --rent-soft:rgba(13,148,136,.10);
+  --warn:#B45309; --focus:#0D9488;
+  --shadow:0 1px 2px rgba(23,24,26,.05), 0 8px 24px -16px rgba(23,24,26,.20);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#141618; --surface:#1C1F22; --surface-2:#23272B;
+    --ink:#F2F1EE; --ink-2:#A9ADB3; --ink-3:#80858C;
+    --rule:#2C3034; --rule-2:#3A3F45;
+    --buy:#DD6B33; --rent:#0FA091;
+    --buy-soft:rgba(221,107,51,.14); --rent-soft:rgba(15,160,145,.14);
+    --warn:#D99B3E; --focus:#0FA091;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#141618; --surface:#1C1F22; --surface-2:#23272B;
+  --ink:#F2F1EE; --ink-2:#A9ADB3; --ink-3:#80858C;
+  --rule:#2C3034; --rule-2:#3A3F45;
+  --buy:#DD6B33; --rent:#0FA091;
+  --buy-soft:rgba(221,107,51,.14); --rent-soft:rgba(15,160,145,.14);
+  --warn:#D99B3E; --focus:#0FA091;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+}
+
+/* language switching: one of the two is always hidden */
+html[lang="en"] .zh, html[lang="zh-CN"] .en{display:none !important}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans","Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.num{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin:0;
+}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--rent)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+.btn{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--surface);border:1px solid var(--rule-2);color:var(--ink-2);padding:5px 10px;border-radius:3px;cursor:pointer;
+  line-height:1.2;white-space:nowrap;
+}
+.btn:hover{border-color:var(--rent);color:var(--rent)}
+
+/* ---------- shell ---------- */
+.wrap{max-width:1440px;margin:0 auto;padding:0 clamp(16px,3vw,40px) 88px}
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 0 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;margin-right:auto}
+.brand svg{width:20px;height:20px;display:block}
+.brand .eyebrow{color:var(--ink-2)}
+.masthead{
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px 28px;
+  padding:24px 0 22px;border-bottom:1px solid var(--rule-2);margin-bottom:28px;
+}
+.masthead h1{
+  font-family:"Instrument Serif","Noto Sans SC","PingFang SC",Georgia,serif;
+  font-weight:400;font-size:clamp(32px,4.6vw,52px);line-height:1.06;letter-spacing:-.015em;margin-top:6px;
+}
+.masthead h1 em{font-style:italic;color:var(--rent)}
+.dek{color:var(--ink-2);font-size:14px;max-width:60ch;margin-top:10px}
+.stamp{margin-left:auto;text-align:right;line-height:1.5}
+@media (max-width:640px){.stamp{margin-left:0;text-align:left}}
+
+.grid{display:grid;grid-template-columns:345px minmax(0,1fr);gap:clamp(20px,2.6vw,38px);align-items:start}
+.grid>main,.grid>.console{min-width:0}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- seg control ---------- */
+.seg{display:flex;border:1px solid var(--rule-2);border-radius:3px;overflow:hidden;background:var(--surface)}
+.seg button{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;
+  background:none;border:0;border-left:1px solid var(--rule-2);color:var(--ink-3);
+  padding:5px 10px;cursor:pointer;font-weight:500;line-height:1.2;
+}
+.seg button:first-child{border-left:0}
+.seg button:hover{color:var(--ink-2)}
+.seg button.on{background:var(--rent);color:#fff}
+
+/* ---------- console (inputs) ---------- */
+.console{position:sticky;top:16px;background:var(--surface);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--shadow);overflow:hidden}
+@media (max-width:1000px){.console{position:static}}
+.console-hd{padding:14px 16px 12px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px}
+.console-hd .eyebrow{flex:1}
+.console-body{max-height:calc(100vh - 110px);overflow-y:auto;padding:4px 0 10px}
+@media (max-width:1000px){.console-body{max-height:none}}
+fieldset{border:0;margin:0;padding:14px 16px 4px;border-top:1px solid var(--rule);min-width:0}
+fieldset:first-of-type{border-top:0}
+legend{padding:0;margin-bottom:10px;float:left;width:100%}
+legend+*{clear:both}
+.f{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;margin-bottom:11px}
+.f .lab{font-size:13px;color:var(--ink-2);line-height:1.35}
+.f label{cursor:pointer}
+.f input[type=number], .f select{
+  width:104px;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:13px;
+  text-align:right;padding:5px 7px;border:1px solid var(--rule-2);border-radius:3px;
+  background:var(--surface-2);color:var(--ink);
+}
+.f select{width:auto;max-width:180px;text-align:left;font-family:inherit;font-size:12.5px;cursor:pointer}
+.f input[type=number]:hover, .f select:hover{border-color:var(--ink-3)}
+.f input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--rent);height:22px;margin:2px 0 0}
+.f .unit{font-size:11px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+.f .hint{grid-column:1/-1;font-size:11.5px;color:var(--ink-3);line-height:1.45;margin-top:2px}
+.auto{
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;
+  border:1px solid var(--rule-2);color:var(--ink-3);background:none;border-radius:2px;padding:0 4px;margin-left:6px;
+  cursor:pointer;vertical-align:1px;line-height:1.5;
+}
+.auto.on{border-color:var(--rent);color:var(--rent);background:var(--rent-soft)}
+.auto:not(.on):hover{color:var(--rent);border-color:var(--rent)}
+
+/* ---------- verdict ---------- */
+.verdict{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--rent);border-radius:4px;padding:22px 24px;box-shadow:var(--shadow);margin-bottom:22px;scroll-margin-top:16px}
+.verdict.buy{border-left-color:var(--buy)}
+.verdict-line{font-size:19px;line-height:1.45;font-weight:500;margin:8px 0 0;text-wrap:balance}
+.verdict-line b{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:1.35em;font-style:italic;color:var(--rent)}
+.verdict.buy .verdict-line b{color:var(--buy)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:4px;overflow:hidden;margin-top:20px}
+.kpi{background:var(--surface);padding:13px 15px 14px}
+.kpi .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:23px;font-weight:500;line-height:1.15;letter-spacing:-.02em;margin-top:5px;display:block}
+.kpi .sub{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.4;display:block}
+
+/* ---------- panels ---------- */
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--shadow);margin-bottom:22px}
+.panel-hd{padding:16px 20px 13px;border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.panel-hd h2{font-size:15.5px;font-weight:600;letter-spacing:-.005em}
+.panel-hd .note{font-size:12.5px;color:var(--ink-3);margin-left:auto}
+.panel-bd{padding:18px 20px 20px}
+@media (max-width:640px){.panel-hd,.panel-bd{padding-left:14px;padding-right:14px}.verdict{padding:18px 16px}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.swatch{width:11px;height:11px;border-radius:2px;display:inline-block;vertical-align:-1px;margin-right:6px}
+
+/* ---------- chart ---------- */
+.chartbox{position:relative;width:100%}
+svg.chart{display:block;width:100%;height:auto;overflow:visible;touch-action:pan-y}
+.tt{
+  position:absolute;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:var(--surface);border:1px solid var(--rule-2);border-radius:4px;
+  box-shadow:var(--shadow);padding:9px 11px;font-size:12px;min-width:180px;z-index:5;
+}
+.tt .r{display:flex;justify-content:space-between;gap:16px;line-height:1.75}
+.tt .r span:last-child{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.tt hr{border:0;border-top:1px solid var(--rule);margin:6px 0}
+.caption{margin-top:12px;text-align:center}
+
+/* ---------- burn bars ---------- */
+.burn{display:grid;gap:16px}
+.burn-row{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:center}
+@media (max-width:640px){.burn-row{grid-template-columns:minmax(0,1fr);gap:6px}}
+.burn-row .who{font-size:13px;font-weight:500;line-height:1.3}
+.burn-track{position:relative;height:38px;background:var(--surface-2);border-radius:3px;overflow:hidden;display:flex}
+.burn-seg{height:100%;position:relative;box-shadow:inset -2px 0 0 var(--surface)}
+.burn-seg:last-child{box-shadow:none}
+.burn-cap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;font-size:12px;color:var(--ink-2);margin-top:5px}
+.burn-cap .amt{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500}
+.burn-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:12px;color:var(--ink-2)}
+.burn-legend .num{color:var(--ink)}
+.burn-key{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-2)}
+.burn-key b{color:var(--ink);font-weight:500}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:6px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left}
+thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:500;border-bottom:1px solid var(--rule-2);position:sticky;top:0;background:var(--surface);
+}
+tbody td{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+tbody tr:hover{background:var(--surface-2)}
+tr.mark td{background:var(--rent-soft);font-weight:500}
+.cell{display:block;padding:6px 4px;border-radius:2px}
+#sens td,#sens th{padding:3px 4px}
+#sens td:first-child,#sens th:first-child{padding-right:10px}
+
+/* ---------- checklist ---------- */
+.checks{display:grid;gap:0}
+.check{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--rule)}
+.check:first-child{border-top:0;padding-top:2px}
+.dot{width:15px;height:15px;border-radius:50%;margin-top:4px;border:2px solid}
+.dot.ok{background:var(--rent);border-color:var(--rent)}
+.dot.no{background:transparent;border-color:var(--buy)}
+.dot.mid{background:transparent;border-color:var(--warn);border-style:dashed}
+.check .t{font-size:13.5px;font-weight:500;line-height:1.45;display:block}
+.check .d{font-size:12.5px;color:var(--ink-2);line-height:1.55;margin-top:2px;display:block}
+.check .d b{color:var(--ink);font-weight:500}
+.check .verd{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.05em;padding-top:5px;white-space:nowrap}
+.verd.ok{color:var(--rent)} .verd.no{color:var(--buy)} .verd.mid{color:var(--warn)}
+
+/* ---------- prose ---------- */
+.prose p{margin:0 0 13px;color:var(--ink-2);font-size:13.5px;line-height:1.75}
+.prose p:last-child{margin-bottom:0}
+.prose strong{color:var(--ink);font-weight:600}
+.prose .num{color:var(--ink)}
+details.raw>summary{
+  cursor:pointer;list-style:none;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);padding:12px 20px;border-top:1px solid var(--rule);
+}
+details.raw>summary::-webkit-details-marker{display:none}
+details.raw>summary::before{content:"▸ ";color:var(--rent)}
+details.raw[open]>summary::before{content:"▾ "}
+details.raw>summary:hover{color:var(--rent)}
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--rule-2);font-size:12px;color:var(--ink-3);line-height:1.75}
+footer p+p{margin-top:10px}
+
+/* ---------- mobile verdict bar ---------- */
+.mbar{
+  position:fixed;left:12px;right:12px;bottom:12px;z-index:20;display:none;
+  align-items:center;gap:12px;padding:11px 14px;border-radius:6px;
+  background:var(--ink);color:var(--ground);box-shadow:0 10px 30px -10px rgba(0,0,0,.45);
+  font-size:13.5px;line-height:1.35;text-decoration:none;
+}
+.mbar .num{font-weight:600}
+.mbar .go{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;opacity:.8;white-space:nowrap}
+.mbar i{width:9px;height:9px;border-radius:50%;flex:none;background:var(--rent)}
+.mbar.buy i{background:var(--buy)}
+@media (max-width:1000px){.mbar.show{display:flex}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--rent)"/><path d="M7 16.5 16 8l9 8.5V25h-6.2v-6h-5.6v6H7z" fill="#fff"/></svg>
+      <span class="eyebrow"><span class="zh">租买计算器</span><span class="en">Rent vs Buy</span></span>
+    </div>
+    <div class="seg" id="langseg" role="group" aria-label="Language">
+      <button type="button" data-lang="zh">中文</button><button type="button" data-lang="en">EN</button>
+    </div>
+    <button type="button" class="btn" id="share"><span class="zh">复制分享链接</span><span class="en">Copy share link</span></button>
+    <button type="button" class="btn" id="theme" aria-label="Toggle dark mode" title="Light / Dark"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" style="display:block"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.75a6.25 6.25 0 0 1 0 12.5z" fill="currentColor"/></svg></button>
+  </div>
+
+  <header class="masthead">
+    <div>
+      <p class="eyebrow"><span class="zh">全成本对比模型 · 美国 · 税后净资产</span><span class="en">Full-cost model · U.S. · After-tax net worth</span></p>
+      <h1>
+        <span class="zh">买 <span data-v="price">$500K</span> 的房，<br>还是<em>租 <span data-v="rent">$2,500</span> 的房</em>？</span>
+        <span class="en">Buy the <span data-v="price">$500K</span> home,<br>or <em>rent at <span data-v="rent">$2,500</span></em>?</span>
+      </h1>
+      <p class="dek">
+        <span class="zh">填入你的条件。模型会把过户费、维修、地税、保险、2026 年税务抵扣、首付和每月差额的机会成本全部算进来。拖动持有年限，看两条净值曲线什么时候交叉。</span>
+        <span class="en">Enter your numbers. The model counts closing costs, maintenance, property tax, insurance, 2026 tax rules, and the opportunity cost of both the down payment and the monthly gap. Drag the holding period to see where the two net-worth lines cross.</span>
+      </p>
+    </div>
+    <div class="stamp">
+      <p class="eyebrow"><span class="zh">30 年固定利率 · Freddie Mac</span><span class="en">30-yr fixed · Freddie Mac</span></p>
+      <p class="num" style="font-size:26px;font-weight:500;letter-spacing:-.02em">7.03<span style="font-size:16px">%</span></p>
+      <p class="eyebrow"><span class="zh">2026 年 9 月 24 日</span><span class="en">Sep 24, 2026</span></p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- ============ INPUT CONSOLE ============ -->
+    <form class="console" id="console" onsubmit="return false" autocomplete="off">
+      <div class="console-hd">
+        <span class="eyebrow"><span class="zh">输入参数</span><span class="en">Your inputs</span></span>
+        <button type="button" class="btn" id="reset"><span class="zh">复位</span><span class="en">Reset</span></button>
+      </div>
+      <div class="console-body" id="fields"></div>
+    </form>
+
+    <!-- ============ RESULTS ============ -->
+    <main>
+      <section class="verdict" id="verdict" aria-live="polite">
+        <p class="eyebrow"><span class="zh">结论</span><span class="en">Verdict</span></p>
+        <p class="verdict-line" id="vline"></p>
+        <div class="kpis" id="kpis"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd">
+          <h2><span class="zh">税后净资产：两条路的差距</span><span class="en">After-tax net worth: the two paths</span></h2>
+          <div class="seg" id="span">
+            <button type="button" data-s="follow" class="on"><span class="zh">跟随持有年限</span><span class="en">Follow hold</span></button><button type="button" data-s="30"><span class="zh">30 年全景</span><span class="en">30 years</span></button>
+          </div>
+          <div class="legend note">
+            <span><i class="swatch" style="background:var(--buy)"></i><span class="zh">买房</span><span class="en">Buy</span></span>
+            <span><i class="swatch" style="background:var(--rent)"></i><span class="zh">租房＋投资</span><span class="en">Rent + invest</span></span>
+          </div>
+        </div>
+        <div class="panel-bd">
+          <div class="chartbox" id="cbox">
+            <svg class="chart" id="chart" role="img" aria-label="Net worth chart"></svg>
+            <div class="tt" id="tt"></div>
+          </div>
+          <p class="eyebrow caption"><span class="zh">假设当年卖房 / 清仓，已扣除卖出费用与资本利得税</span><span class="en">Assumes you sell / liquidate that year, net of selling costs and capital-gains tax</span></p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd">
+          <h2><span class="zh">每月真正烧掉的钱</span><span class="en">What you actually burn each month</span></h2>
+          <span class="note"><span class="zh">第 1 年 · 不含还本金，不含首付机会成本</span><span class="en">Year 1 · excludes principal and the down payment's opportunity cost</span></span>
+        </div>
+        <div class="panel-bd">
+          <div class="burn" id="burn"></div>
+          <div class="burn-legend" id="burnlegend"></div>
+          <div class="burn-key" id="burnkey"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd">
+          <h2><span class="zh">敏感性：房价涨幅 × 持有年限</span><span class="en">Sensitivity: appreciation × holding period</span></h2>
+          <span class="note"><span class="zh">格子里是「买房净值 − 租房净值」</span><span class="en">Cells show buy net worth − rent net worth</span></span>
+        </div>
+        <div class="panel-bd">
+          <div class="scroll"><table id="sens"></table></div>
+          <div class="legend" style="margin-top:14px">
+            <span><i class="swatch" style="background:var(--buy)"></i><span class="zh">买房领先</span><span class="en">Buying ahead</span></span>
+            <span><i class="swatch" style="background:var(--rent)"></i><span class="zh">租房领先</span><span class="en">Renting ahead</span></span>
+            <span style="color:var(--ink-3)"><span class="zh">颜色越深差距越大</span><span class="en">Darker = bigger gap</span></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd"><h2><span class="zh">该不该买：对着你的数字过一遍</span><span class="en">Should you buy? A checklist against your numbers</span></h2></div>
+        <div class="panel-bd"><div class="checks" id="checks"></div></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd"><h2><span class="zh">最常被漏算的几项</span><span class="en">What people most often leave out</span></h2></div>
+        <div class="panel-bd prose" id="missed"></div>
+        <details class="raw">
+          <summary><span class="zh">逐年现金流与净值明细</span><span class="en">Year-by-year cash flow and net worth</span></summary>
+          <div class="panel-bd" style="padding-top:0">
+            <div class="scroll" style="max-height:460px"><table id="yr"></table></div>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd"><h2><span class="zh">三个关键假设怎么填</span><span class="en">Getting the three key assumptions right</span></h2></div>
+        <div class="panel-bd prose" id="assume"></div>
+      </section>
+
+      <footer>
+        <p class="zh">模型口径：月度摊销引擎，年度汇总。买房侧终值＝房屋市值 − 贷款余额 − 卖出费用 − 超出自住豁免部分的资本利得税 ＋ 买方投资组合（税后）；租房侧终值＝租方投资组合（税后）。租方初始投入＝首付＋买入过户费；此后每月由支出较少的一方把两边现金流差额投入自己的组合，按相同回报率复利。税务按 2026 年联邦规则（OBBBA）：标准扣除单身 $16,100 / 合报 $32,200（随费用通胀调整）；SALT 上限 $40,400，2029 年前每年 +1%，MAGI 超过 $505K 按 30% 递减（最低 $10K），2030 年起回到 $10,000；房贷利息抵扣本金上限 $750K；37% 档的逐项扣除按 35% 计；PMI 视同房贷利息抵扣（AGI $100K–$110K 逐步取消）。自住满 2 年可豁免 $250K / $500K 增值。州税：资本利得按所填州税率征收；可选新泽西式州地税抵扣（租客按房租 18% 折算）。未建模：州层面的房贷利息抵扣、组合每年的股息税拖累、再融资、地税重估上限（如加州 Prop 13）、空置与搬家成本。</p>
+        <p class="en">Method: monthly amortization engine, summarized by year. Buy-side value = home value − loan balance − selling costs − capital-gains tax above the home-sale exclusion + the buyer's investment portfolio (after tax). Rent-side value = the renter's portfolio (after tax). The renter starts with the down payment + buying closing costs invested; after that, each month whichever side spends less invests the difference at the same return. Taxes follow 2026 federal rules (OBBBA): standard deduction $16,100 single / $32,200 joint (indexed to cost inflation); SALT cap $40,400, +1% a year through 2029, reduced by 30% of MAGI above $505K (floor $10K), reverting to $10,000 in 2030; mortgage-interest deduction on up to $750K of debt; itemized deductions worth 35% in the 37% bracket; PMI treated as deductible interest (phased out at AGI $100K–$110K). Home-sale exclusion $250K / $500K after 2 years. State: capital gains taxed at your state rate; optional New Jersey–style property-tax deduction (renters at 18% of rent). Not modeled: state mortgage-interest deductions, annual dividend tax drag, refinancing, assessment caps (e.g., California Prop 13), vacancy and moving costs.</p>
+        <p class="zh">这是一个用来自己调参数的测算工具，不构成税务、法律或投资建议。做决定前请让会计师核对你的实际税率和地税评估值。默认利率来自 <a href="https://www.freddiemac.com/pmms" target="_blank" rel="noopener">Freddie Mac PMMS</a>，税务参数来自 <a href="https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill" target="_blank" rel="noopener">IRS 2026 年通胀调整</a>。所有计算都在你的浏览器里完成，不上传任何数据。</p>
+        <p class="en">A calculator for exploring your own assumptions — not tax, legal or investment advice. Have a CPA check your actual tax rates and assessed value before deciding. Default rate from <a href="https://www.freddiemac.com/pmms" target="_blank" rel="noopener">Freddie Mac PMMS</a>; tax parameters from the <a href="https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill" target="_blank" rel="noopener">IRS 2026 inflation adjustments</a>. Everything runs in your browser; nothing is uploaded.</p>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<a class="mbar" id="mbar" href="#verdict"><i></i><span id="mbar-t"></span><span class="go"><span class="zh">看结果 ↓</span><span class="en">Results ↓</span></span></a>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================ LANGUAGE ============================ */
+var LANG = "zh";
+function L(zh, en){ return LANG === "zh" ? zh : en; }
+function bi(zh, en){ return zh === en ? zh : '<span class="zh">'+zh+'</span><span class="en">'+en+'</span>'; }
+function store(k, v){ try{ if(v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){ return null; } }
+
+/* ============================ 2026 FEDERAL PARAMETERS ============================ */
+var P = {
+  START: 2026,
+  STD: {single:16100, mfj:32200},
+  SALT_BASE: 40400, SALT_THR: 505000, SALT_FLOOR: 10000, SALT_REVERT: 2030, SALT_OLD: 10000,
+  DEBT_CAP: 750000,
+  EXCL: {single:250000, mfj:500000},
+  NIIT: {single:200000, mfj:250000},
+  BRK: {
+    single:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[640600,.35],[Infinity,.37]],
+    mfj:   [[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[Infinity,.37]]
+  },
+  LTCG: {single:[49450,545500], mfj:[98900,613700]},
+  PMI_AGI: 100000,
+  RENTER_PT: 0.18
+};
+var HORIZON = 30;
+
+function saltCap(year, magi){
+  if(year >= P.SALT_REVERT) return P.SALT_OLD;
+  var k = Math.pow(1.01, Math.max(0, year - P.START));
+  return Math.max(P.SALT_FLOOR, P.SALT_BASE*k - 0.3*Math.max(0, magi - P.SALT_THR*k));
+}
+
+/* ============================ FIELDS ============================ */
+var GROUPS = [
+  {zh:"房子与贷款", en:"Home & mortgage", f:[
+    {id:"price", zh:"房价", en:"Home price", v:500000, s:10000},
+    {id:"down",  zh:"首付", en:"Down payment", v:100000, s:5000},
+    {id:"rate",  zh:"房贷利率", en:"Mortgage rate", uz:"%", ue:"%", v:7.03, s:0.05},
+    {id:"term",  zh:"贷款年限", en:"Loan term", uz:"年", ue:"yrs", v:30, s:5},
+    {id:"pmi",   zh:"PMI 费率", en:"PMI rate", uz:"% 贷款 / 年", ue:"% of loan / yr", v:0.6, s:0.05,
+      hz:"首付低于 20% 才收；贷款降到原房价 78% 时自动取消。", he:"Charged only if down < 20%; drops off at 78% of the original price."}
+  ]},
+  {zh:"持有成本", en:"Carrying costs", f:[
+    {id:"ptax",  zh:"地税", en:"Property tax", uz:"% 房价 / 年", ue:"% of value / yr", v:1.1, s:0.1,
+      hz:"全美平均约 0.9%，NJ / IL 约 2%，TX 约 1.6%，CA 约 0.75%。", he:"U.S. avg ≈ 0.9%; NJ / IL ≈ 2%; TX ≈ 1.6%; CA ≈ 0.75%."},
+    {id:"hoa",   zh:"HOA", en:"HOA", uz:"$ / 月", ue:"$ / mo", v:0, s:25},
+    {id:"ins",   zh:"房屋保险", en:"Homeowners insurance", uz:"$ / 月", ue:"$ / mo", v:200, s:25},
+    {id:"maint", zh:"维修与资本支出", en:"Maintenance & repairs", uz:"% 房价 / 年", ue:"% of value / yr", v:1.0, s:0.1},
+    {id:"xutil", zh:"额外水电杂费", en:"Extra utilities", uz:"$ / 月", ue:"$ / mo", v:100, s:25,
+      hz:"买房比租房多出的部分（面积更大、自付水费垃圾等）。", he:"What owning adds over renting (more space, water, trash, etc.)."}
+  ]},
+  {zh:"交易成本", en:"Transaction costs", f:[
+    {id:"bcc", zh:"买入过户费", en:"Closing costs (buy)", uz:"% 房价", ue:"% of price", v:3, s:0.5},
+    {id:"scc", zh:"卖出费用", en:"Selling costs", uz:"% 售价", ue:"% of sale", v:6, s:0.5,
+      hz:"含中介佣金与过户税。", he:"Agent commissions plus transfer taxes."}
+  ]},
+  {zh:"租房", en:"Renting", f:[
+    {id:"rent",  zh:"月租", en:"Monthly rent", v:2500, s:50},
+    {id:"rgrow", zh:"房租年涨幅", en:"Rent increase", uz:"% / 年", ue:"% / yr", v:3.5, s:0.25},
+    {id:"rins",  zh:"租客保险", en:"Renter's insurance", uz:"$ / 月", ue:"$ / mo", v:15, s:5}
+  ]},
+  {zh:"市场假设", en:"Market assumptions", f:[
+    {id:"appr",  zh:"房价年涨幅", en:"Home appreciation", uz:"% 名义", ue:"% nominal", v:4, s:0.25},
+    {id:"ret",   zh:"投资年回报", en:"Investment return", uz:"% 税前", ue:"% pre-tax", v:7, s:0.5},
+    {id:"cinfl", zh:"费用通胀", en:"Cost inflation", uz:"%", ue:"%", v:3, s:0.25,
+      hz:"HOA、保险、杂费、收入与标准扣除按此增长。", he:"HOA, insurance, utilities, income and the standard deduction grow at this rate."}
+  ]},
+  {zh:"税务（2026 年联邦规则）", en:"Taxes (2026 federal rules)", f:[
+    {id:"filing", type:"select", zh:"报税身份", en:"Filing status", v:"single",
+      opts:[["single","单身","Single"],["mfj","已婚合并报税","Married filing jointly"]]},
+    {id:"income", zh:"家庭年收入 (MAGI)", en:"Household income (MAGI)", uz:"$ / 年", ue:"$ / yr", v:150000, s:5000},
+    {id:"fed",    zh:"联邦边际税率", en:"Federal marginal rate", uz:"%", ue:"%", s:1, auto:true},
+    {id:"ltcg",   zh:"长期资本利得税", en:"Long-term cap-gains rate", uz:"% 联邦，含 NIIT", ue:"% federal incl. NIIT", s:0.1, auto:true},
+    {id:"strate", zh:"州所得税率", en:"State income-tax rate", uz:"% 边际", ue:"% marginal", v:5, s:0.25,
+      hz:"没有州所得税（TX、FL、WA 等）填 0。", he:"Enter 0 for states with no income tax (TX, FL, WA, …)."},
+    {id:"sit",    zh:"每年州所得税", en:"State income tax paid", uz:"$ / 年", ue:"$ / yr", s:500, auto:true,
+      hz:"计入 SALT 抵扣上限。标「自动」的三项按收入估算，可直接改。", he:"Counts toward the SALT cap. Fields marked “auto” are estimated from income — overwrite them freely."},
+    {id:"stcap",  zh:"州地税抵扣上限", en:"State property-tax deduction cap", uz:"$", ue:"$", v:0, s:1000,
+      hz:"新泽西填 15000（租客按房租 18% 折算）；多数州没有，填 0。", he:"New Jersey: 15000 (renters count 18% of rent). Most states: 0."}
+  ]},
+  {zh:"持有年限", en:"Holding period", f:[
+    {id:"hold", type:"range", zh:"卖出 / 搬走的年份", en:"Years until you sell / move", v:10, min:1, max:30}
+  ]}
+];
+var FIELDS = [], FBYID = {};
+GROUPS.forEach(function(g){ g.f.forEach(function(f){ FIELDS.push(f); FBYID[f.id] = f; }); });
+var AUTO_IDS = ["fed","ltcg","sit"];
+var AUTO = {fed:true, ltcg:true, sit:true};
+
+function $(id){ return document.getElementById(id); }
+
+function buildConsole(){
+  var html = "";
+  GROUPS.forEach(function(g){
+    html += '<fieldset><legend class="eyebrow">'+bi(g.zh, g.en)+'</legend>';
+    g.f.forEach(function(f){
+      var unit = f.uz ? ' <span class="unit">'+bi(f.uz, f.ue)+'</span>' : "";
+      var hint = f.hz ? '<span class="hint">'+bi(f.hz, f.he)+'</span>' : "";
+      var lab = '<label for="'+f.id+'">'+bi(f.zh, f.en)+'</label>';
+      if(f.type === "select"){
+        html += '<div class="f"><div class="lab">'+lab+'</div><select id="'+f.id+'">'+
+          f.opts.map(function(o){ return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join("")+
+          '</select>'+hint+'</div>';
+      } else if(f.type === "range"){
+        html += '<div class="f"><div class="lab">'+lab+'</div><span class="num" id="holdv" style="font-size:15px;font-weight:500"></span>'+
+          '<input type="range" id="'+f.id+'" min="'+f.min+'" max="'+f.max+'" step="1" value="'+f.v+'">'+hint+'</div>';
+      } else {
+        var auto = f.auto ? '<button type="button" class="auto on" data-auto="'+f.id+'" title="">'+bi("自动","auto")+'</button>' : "";
+        html += '<div class="f"><div class="lab">'+lab+unit+auto+'</div>'+
+          '<input type="number" id="'+f.id+'" step="'+f.s+'" inputmode="decimal"'+(f.v !== undefined ? ' value="'+f.v+'"' : '')+'>'+hint+'</div>';
+      }
+    });
+    html += '</fieldset>';
+  });
+  $("fields").innerHTML = html;
+}
+
+/* ---------- auto tax estimates ---------- */
+function suggest(){
+  var fs = $("filing").value, inc = parseFloat($("income").value) || 0, sr = (parseFloat($("strate").value) || 0)/100;
+  var ti = Math.max(0, inc - P.STD[fs]), fed = .37;
+  for(var i=0;i<P.BRK[fs].length;i++){ if(ti <= P.BRK[fs][i][0]){ fed = P.BRK[fs][i][1]; break; } }
+  var lt = P.LTCG[fs];
+  var cg = ti < lt[0] ? 0 : (ti < lt[1] ? 15 : 20);
+  if(inc > P.NIIT[fs]) cg += 3.8;
+  return {fed: Math.round(fed*100), ltcg: Math.round(cg*10)/10, sit: Math.round(inc*sr*0.8/500)*500};
+}
+function applyAuto(){
+  var s = suggest();
+  AUTO_IDS.forEach(function(id){
+    if(AUTO[id]) $(id).value = s[id];
+    var b = document.querySelector('[data-auto="'+id+'"]');
+    if(b){ b.classList.toggle("on", AUTO[id]); b.title = AUTO[id] ? L("按收入自动估算","Estimated from income") : L("点击恢复自动估算","Click to restore the estimate"); }
+  });
+}
+
+function cfg(){
+  var g = function(id){ return parseFloat($(id).value) || 0; };
+  return {
+    price:Math.max(g("price"),0), down:Math.max(g("down"),0), rate:g("rate")/100, term:Math.max(g("term"),1), pmi:g("pmi")/100,
+    ptax:g("ptax")/100, hoa:g("hoa"), ins:g("ins"), maint:g("maint")/100, xutil:g("xutil"),
+    bcc:g("bcc")/100, scc:g("scc")/100,
+    rent:g("rent"), rgrow:g("rgrow")/100, rins:g("rins"),
+    appr:g("appr")/100, ret:g("ret")/100, cinfl:g("cinfl")/100,
+    filing: $("filing").value === "mfj" ? "mfj" : "single",
+    income:g("income"), fed:g("fed")/100, ltcg:g("ltcg")/100, strate:g("strate")/100, sit:g("sit"), stcap:g("stcap"),
+    hold:Math.min(HORIZON, Math.max(1, Math.round(g("hold"))))
+  };
+}
+
+/* ============================ MODEL ============================ */
+function amort(loan, rate, termYears){
+  var r = rate/12, n = Math.max(1, Math.round(termYears*12)), pmt;
+  pmt = loan <= 0 ? 0 : ((r === 0) ? loan/n : loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
+  var bal = loan, m = [];
+  for(var k=0;k<n;k++){
+    var i = bal*r, p = Math.min(pmt - i, bal), start = bal;
+    bal -= p;
+    m.push({i:i, p:p, start:start, bal: bal > 0 ? bal : 0});
+  }
+  return {pmt:pmt, m:m};
+}
+
+function run(c){
+  var fs = c.filing;
+  var loan = Math.max(c.price - c.down, 0);
+  var A = amort(loan, c.rate, c.term);
+  var upfront = c.down + c.price*c.bcc;
+  var rPort = upfront, rBasis = upfront;   // renter invests what the buyer spent up front
+  var bPort = 0, bBasis = 0;               // buyer invests whenever owning is cheaper
+  var imr = Math.pow(1 + c.ret, 1/12) - 1;
+  var homeBasis = c.price*(1 + c.bcc);
+  var capRate = c.ltcg + c.strate;
+  var fedEff = Math.min(c.fed, 0.35);      // OBBBA: itemized deductions worth at most 35%
+  var needPMI = loan > 0 && c.down < 0.2*c.price && c.pmi > 0;
+  var pmiStop = 0.78*c.price;
+  var rows = [];
+
+  for(var y=1; y<=HORIZON; y++){
+    var yi=0, yp=0, pmiY=0, bal = (y === 1 ? loan : rows[y-2].bal);
+    for(var k=(y-1)*12; k<y*12; k++){
+      if(k < A.m.length){
+        yi += A.m[k].i; yp += A.m[k].p; bal = A.m[k].bal;
+        if(needPMI && A.m[k].start > pmiStop) pmiY += loan*c.pmi/12;
+      } else bal = 0;
+    }
+    var year = P.START + y - 1;
+    var infl = Math.pow(1 + c.cinfl, y-1);
+    var apprF = Math.pow(1 + c.appr, y-1);
+
+    var ptax  = c.price*c.ptax*apprF;
+    var hoa   = c.hoa*12*infl;
+    var ins   = c.ins*12*infl;
+    var maint = c.price*c.maint*apprF;
+    var xutil = c.xutil*12*infl;
+
+    var magi = c.income*infl, sit = c.sit*infl, std = P.STD[fs]*infl;
+    var dedInt = loan > P.DEBT_CAP ? yi*(P.DEBT_CAP/loan) : yi;
+    var pmiPh = Math.max(0, 1 - Math.ceil(Math.max(0, magi - P.PMI_AGI)/1000)*0.1);
+    var cap = saltCap(year, magi);
+    var itemBuy = dedInt + pmiY*pmiPh + Math.min(ptax + sit, cap);
+    var itemRent = Math.min(sit, cap);
+    var fedBen = Math.max(0, (Math.max(itemBuy, std) - Math.max(itemRent, std)) * fedEff);
+    var stBenB = c.stcap > 0 ? Math.min(ptax, c.stcap)*c.strate : 0;
+    var taxBen = fedBen + stBenB;
+
+    var buyCash = yi + yp + pmiY + ptax + hoa + ins + maint + xutil - taxBen;
+
+    var rent = c.rent*12*Math.pow(1 + c.rgrow, y-1);
+    var rIns = c.rins*12*infl;
+    var stBenR = c.stcap > 0 ? Math.min(rent*P.RENTER_PT, c.stcap)*c.strate : 0;
+    var rentCash = rent + rIns - stBenR;
+
+    var diffMo = (buyCash - rentCash)/12;
+    for(var t=0;t<12;t++){
+      rPort *= (1 + imr); bPort *= (1 + imr);
+      if(diffMo >= 0){ rPort += diffMo; rBasis += diffMo; }
+      else { bPort -= diffMo; bBasis -= diffMo; }
+    }
+
+    var hv = c.price*Math.pow(1 + c.appr, y);
+    var sellCost = hv*c.scc;
+    var gain = Math.max(0, hv - sellCost - homeBasis);
+    var excl = y >= 2 ? P.EXCL[fs] : 0;
+    var cgTax = Math.max(0, gain - excl)*capRate;
+    var bPortNet = bPort - Math.max(0, bPort - bBasis)*capRate;
+    var buyNW = hv - bal - sellCost - cgTax + bPortNet;
+    var rentNW = rPort - Math.max(0, rPort - rBasis)*capRate;
+
+    rows.push({y:y, year:year, pi:yi+yp, interest:yi, principal:yp, bal:bal, pmi:pmiY, ptax:ptax, hoa:hoa, ins:ins,
+      maint:maint, xutil:xutil, fedBen:fedBen, stBenB:stBenB, stBenR:stBenR, taxBen:taxBen, buyCash:buyCash,
+      rent:rent, rentCash:rentCash, diffMo:diffMo, rPort:rPort, bPort:bPort, hv:hv, buyNW:buyNW, rentNW:rentNW,
+      adv:buyNW - rentNW, pmt:A.pmt, saltCap:cap, std:std});
+  }
+  return rows;
+}
+
+/* ============================ FORMAT ============================ */
+function usd(n){ return (n < -0.5 ? "−$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US"); }
+function comp(n, tight){
+  var a = Math.abs(n), s = n < 0 ? "−$" : "$";
+  if(a >= 1e6) return s + (a/1e6).toFixed(tight ? (a >= 1e7 ? 0 : 1) : 2).replace(/\.0+$/,"") + "M";
+  if(a >= 1e3) return s + Math.round(a/1e3) + "K";
+  return s + Math.round(a);
+}
+function pct(x, d){ return (x*100).toFixed(d === undefined ? 1 : d).replace(/\.0+$/,"") + "%"; }
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function N(s){ return '<span class="num">'+s+'</span>'; }
+function yrs(n){ return L(n+" 年", n+(n === 1 ? " yr" : " yrs")); }
+
+/* ============================ SOLVERS ============================ */
+function breakEvenYear(rows){
+  for(var i=0;i<rows.length;i++) if(rows[i].adv > 0) return rows[i].y;
+  return null;
+}
+function bisect(c, key, lo, hi, year){
+  var at = function(v){ var t = Object.assign({}, c); t[key] = v; return run(t)[year-1].adv; };
+  var fLo = at(lo), fHi = at(hi);
+  if((fLo < 0) === (fHi < 0)) return {out: fLo < 0 ? "above" : "below"};
+  var mid = 0;
+  for(var i=0;i<44;i++){
+    mid = (lo + hi)/2;
+    if((at(mid) < 0) === (fLo < 0)) lo = mid; else hi = mid;
+  }
+  return {v: mid};
+}
+
+/* ============================ CHART ============================ */
+var SVGNS = "http://www.w3.org/2000/svg";
+function el(n, a){ var e = document.createElementNS(SVGNS, n); for(var k in a) e.setAttribute(k, a[k]); return e; }
+var LAST = null;
+
+function drawChart(allRows, hold, span){
+  LAST = [allRows, hold, span];
+  var rows = allRows.slice(0, span);
+  var svg = $("chart"), box = $("cbox");
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  var cw = box.clientWidth || 820;
+  var W = Math.round(Math.min(820, Math.max(320, cw)));
+  var narrow = W < 600;
+  var H = narrow ? Math.round(W*0.82) : 380;
+  var ML = narrow ? 46 : 64, MR = narrow ? 70 : 96, MT = 26, MB = 34;
+  svg.setAttribute("viewBox", "0 0 "+W+" "+H);
+  var pw = W - ML - MR, ph = H - MT - MB;
+  var BUY = css("--buy"), RENT = css("--rent"), RULE = css("--rule"), INK3 = css("--ink-3"), INK2 = css("--ink-2"), SURF = css("--surface");
+  var FS = narrow ? 10.5 : 11;
+
+  var maxV = 0, minV = 0;
+  rows.forEach(function(r){ maxV = Math.max(maxV, r.buyNW, r.rentNW); minV = Math.min(minV, r.buyNW, r.rentNW); });
+  if(maxV <= 0) maxV = 1;
+  var rng = maxV - minV;
+  var step = Math.pow(10, Math.floor(Math.log(rng)/Math.LN10))/2;
+  while(rng/step > (narrow ? 5 : 8)) step *= 2;
+  var top = Math.ceil(maxV/step)*step, bot = Math.floor(minV/step)*step;
+
+  var X = function(y){ return span > 1 ? ML + (y-1)/(span-1)*pw : ML + pw/2; };
+  var Y = function(v){ return MT + ph - (v - bot)/(top - bot)*ph; };
+
+  for(var v=bot; v<=top + step*0.01; v+=step){
+    var gy = Y(v);
+    svg.appendChild(el("line", {x1:ML, x2:ML+pw, y1:gy, y2:gy, stroke:RULE, "stroke-width": Math.abs(v) < step*0.01 ? 1.5 : 1}));
+    var tl = el("text", {x:ML-8, y:gy+4, "text-anchor":"end", fill:INK3, "font-size":FS, "font-family":"IBM Plex Mono, monospace"});
+    tl.textContent = Math.abs(v) < step*0.01 ? "0" : comp(v, true);
+    svg.appendChild(tl);
+  }
+  var st = Math.max(1, Math.round(span/(narrow ? 4 : 6))), ticks = [1];
+  for(var tk=st; tk<=span; tk+=st) if(ticks.indexOf(tk) < 0) ticks.push(tk);
+  if(ticks[ticks.length-1] !== span) ticks.push(span);
+  if(ticks.length > 2 && span - ticks[ticks.length-2] < st*0.6) ticks.splice(ticks.length-2, 1);
+  ticks.forEach(function(y){
+    var tx = el("text", {x:X(y), y:MT+ph+22, "text-anchor":"middle", fill:INK3, "font-size":FS, "font-family":"IBM Plex Mono, monospace"});
+    tx.textContent = y === 1 ? L("第1年", "Yr 1") : L(y+"年", "Yr "+y);
+    svg.appendChild(tx);
+  });
+
+  function path(key, close){
+    var d = "";
+    rows.forEach(function(r, i){ d += (i ? " L" : "M") + X(r.y).toFixed(2) + " " + Y(r[key]).toFixed(2); });
+    if(close) d += " L" + X(span).toFixed(2) + " " + Y(Math.max(0, bot)).toFixed(2) + " L" + X(1).toFixed(2) + " " + Y(Math.max(0, bot)).toFixed(2) + " Z";
+    return d;
+  }
+  svg.appendChild(el("path", {d:path("rentNW", true), fill:RENT, opacity:.08}));
+  svg.appendChild(el("path", {d:path("buyNW", true), fill:BUY, opacity:.08}));
+
+  if(hold <= span){
+    var hx = X(hold);
+    svg.appendChild(el("line", {x1:hx, x2:hx, y1:MT, y2:MT+ph, stroke:INK3, "stroke-width":1, "stroke-dasharray":"3 4", opacity:.7}));
+    var hl = el("text", {x:hx, y:MT-6, "text-anchor":"middle", fill:INK3, "font-size":FS-0.5, "font-family":"IBM Plex Mono, monospace"});
+    hl.textContent = L("第"+hold+"年卖出", "sell in yr "+hold);
+    svg.appendChild(hl);
+  }
+
+  svg.appendChild(el("path", {d:path("rentNW"), fill:"none", stroke:RENT, "stroke-width":2.25, "stroke-linejoin":"round", "stroke-linecap":"round"}));
+  svg.appendChild(el("path", {d:path("buyNW"), fill:"none", stroke:BUY, "stroke-width":2.25, "stroke-linejoin":"round", "stroke-linecap":"round"}));
+
+  for(var i=1;i<rows.length;i++){
+    if((rows[i-1].adv < 0) !== (rows[i].adv < 0)){
+      svg.appendChild(el("circle", {cx:X(rows[i].y), cy:Y(rows[i].buyNW), r:5.5, fill:SURF, stroke:INK2, "stroke-width":2}));
+      break;
+    }
+  }
+
+  var last = rows[span-1];
+  var yb = Y(last.buyNW), yr = Y(last.rentNW);
+  if(Math.abs(yb - yr) < 30){ var mid = (yb + yr)/2, up = yb < yr; yb = mid + (up ? -15 : 15); yr = mid + (up ? 15 : -15); }
+  [["buyNW", BUY, L("买房","Buy"), yb], ["rentNW", RENT, L("租房","Rent"), yr]].forEach(function(s){
+    svg.appendChild(el("circle", {cx:X(span), cy:Y(last[s[0]]), r:4, fill:s[1], stroke:SURF, "stroke-width":2}));
+    var t1 = el("text", {x:X(span)+10, y:s[3]-2, fill:s[1], "font-size":FS+0.5, "font-weight":600, "font-family":"IBM Plex Sans, Noto Sans SC, PingFang SC, sans-serif"});
+    t1.textContent = s[2];
+    svg.appendChild(t1);
+    var t2 = el("text", {x:X(span)+10, y:s[3]+12, fill:INK2, "font-size":FS, "font-family":"IBM Plex Mono, monospace"});
+    t2.textContent = comp(last[s[0]], true);
+    svg.appendChild(t2);
+  });
+
+  var cross = el("line", {x1:0, x2:0, y1:MT, y2:MT+ph, stroke:INK2, "stroke-width":1, opacity:0});
+  var d1 = el("circle", {r:5, fill:BUY, stroke:SURF, "stroke-width":2, opacity:0});
+  var d2 = el("circle", {r:5, fill:RENT, stroke:SURF, "stroke-width":2, opacity:0});
+  svg.appendChild(cross); svg.appendChild(d1); svg.appendChild(d2);
+  var hit = el("rect", {x:ML, y:MT, width:pw, height:ph, fill:"transparent", style:"cursor:crosshair"});
+  svg.appendChild(hit);
+
+  var tt = $("tt");
+  function move(ev){
+    var rect = svg.getBoundingClientRect();
+    var px = (ev.clientX - rect.left)/rect.width*W;
+    var yr2 = Math.min(span, Math.max(1, Math.round((px - ML)/pw*(span-1)) + 1));
+    var r = rows[yr2-1], xx = X(yr2);
+    cross.setAttribute("x1", xx); cross.setAttribute("x2", xx); cross.setAttribute("opacity", .35);
+    d1.setAttribute("cx", xx); d1.setAttribute("cy", Y(r.buyNW)); d1.setAttribute("opacity", 1);
+    d2.setAttribute("cx", xx); d2.setAttribute("cy", Y(r.rentNW)); d2.setAttribute("opacity", 1);
+    tt.innerHTML =
+      '<div class="eyebrow" style="margin-bottom:5px">'+L("第 "+yr2+" 年卖出", "Sell in year "+yr2)+'</div>'+
+      '<div class="r"><span><i class="swatch" style="background:var(--buy)"></i>'+L("买房净值","Buy net worth")+'</span><span>'+usd(r.buyNW)+'</span></div>'+
+      '<div class="r"><span><i class="swatch" style="background:var(--rent)"></i>'+L("租房净值","Rent net worth")+'</span><span>'+usd(r.rentNW)+'</span></div>'+
+      '<hr>'+
+      '<div class="r"><span style="color:var(--ink-3)">'+L("买 − 租","Buy − rent")+'</span><span style="color:'+(r.adv > 0 ? 'var(--buy)' : 'var(--rent)')+'">'+usd(r.adv)+'</span></div>'+
+      '<div class="r"><span style="color:var(--ink-3)">'+L("当年月租","Rent that year")+'</span><span>'+usd(r.rent/12)+'</span></div>';
+    tt.style.opacity = 1;
+    var bw = box.clientWidth, tw = tt.offsetWidth || 190;
+    var lft = xx/W*bw + 16;
+    if(lft + tw > bw) lft = xx/W*bw - tw - 16;
+    tt.style.left = Math.max(0, lft) + "px";
+    tt.style.top = Math.max(4, MT/H*rect.height) + "px";
+  }
+  function hide(){
+    tt.style.opacity = 0; cross.setAttribute("opacity", 0);
+    d1.setAttribute("opacity", 0); d2.setAttribute("opacity", 0);
+  }
+  hit.addEventListener("pointermove", move);
+  hit.addEventListener("pointerdown", move);
+  hit.addEventListener("pointerleave", function(ev){ if(ev.pointerType === "mouse") hide(); });
+}
+
+/* ============================ RENDER ============================ */
+var SPAN = "follow";
+
+function render(){
+  var c = cfg(), rows = run(c), hold = c.hold;
+  var r = rows[hold-1], be = breakEvenYear(rows), y1 = rows[0];
+  $("holdv").textContent = yrs(hold);
+  var rentWins = r.adv < 0;
+  var loan = Math.max(c.price - c.down, 0);
+
+  document.querySelectorAll('[data-v="price"]').forEach(function(e){ e.textContent = comp(c.price, true); });
+  document.querySelectorAll('[data-v="rent"]').forEach(function(e){ e.textContent = usd(c.rent); });
+
+  /* --- verdict --- */
+  $("verdict").className = "verdict" + (rentWins ? "" : " buy");
+  var lead = rentWins ? L("租房","renting") : L("买房","buying");
+  var beTxt;
+  if(rentWins) beTxt = be ? L("买房要到第 "+be+" 年才反超。", "Buying doesn't pull ahead until year "+be+".") : L("在 30 年的窗口里买房始终没有反超。", "Buying never pulls ahead within 30 years.");
+  else beTxt = L("买房从第 "+be+" 年开始反超。", "Buying pulls ahead in year "+be+".");
+  $("vline").innerHTML = L("住 "+hold+" 年，"+lead+"领先 <b>"+comp(Math.abs(r.adv))+"</b>。", "Over "+yrs(hold)+", "+lead+" comes out <b>"+comp(Math.abs(r.adv))+"</b> ahead. ") + beTxt;
+
+  var mb = $("mbar");
+  mb.classList.toggle("buy", !rentWins);
+  $("mbar-t").innerHTML = L("住 "+hold+" 年："+lead+"领先 ", yrs(hold)+": "+lead+" ahead by ") + N(comp(Math.abs(r.adv)));
+
+  var need = bisect(c, "appr", -0.10, 0.35, hold);
+  var brk = bisect(c, "rent", 0, Math.max(30000, c.price/40), hold);
+  var p2r = c.rent > 0 ? c.price/(c.rent*12) : Infinity;
+  var needTxt = need.out ? (need.out === "above" ? ">35%" : "<−10%") : pct(need.v, 1);
+  var brkTxt = brk.out ? (brk.out === "above" ? ">" + comp(Math.max(30000, c.price/40)) : "—") : usd(brk.v);
+
+  var kp = [
+    [L("盈亏平衡年","Break-even year"), be ? L("第 "+be+" 年","Year "+be) : "—", be ? L("买房净值反超租房的年份","When buying overtakes renting") : L("30 年内买房不反超","Buying never overtakes in 30 yrs")],
+    [L("价租比","Price-to-rent"), isFinite(p2r) ? p2r.toFixed(1)+"x" : "—", L("房价 ÷ 年租金 · 低于 15x 偏向买，高于 20x 偏向租","Price ÷ annual rent · <15x leans buy, >20x leans rent")],
+    [L("打平所需房价年涨幅","Break-even appreciation"), needTxt, L("住 "+hold+" 年、其余条件不变","Holding "+yrs(hold)+", all else equal")],
+    [L("打平所需月租","Break-even rent"), brkTxt, rentWins ? L("月租达到这个水平，买房才不吃亏","Rent at which buying breaks even") : L("月租低于这个水平，租房才更划算","Renting only wins below this rent")]
+  ];
+  $("kpis").innerHTML = kp.map(function(k){
+    return '<div class="kpi"><span class="eyebrow">'+k[0]+'</span><span class="v">'+k[1]+'</span><span class="sub">'+k[2]+'</span></div>';
+  }).join("");
+
+  /* --- chart --- */
+  var span = SPAN === "follow" ? Math.min(HORIZON, Math.max(10, Math.ceil(hold*1.5))) : HORIZON;
+  drawChart(rows, hold, span);
+
+  /* --- burn --- */
+  var txnPerYr = (c.price*c.bcc + c.price*Math.pow(1 + c.appr, hold)*c.scc)/hold;
+  var segs = [
+    [L("房贷利息","Mortgage interest"), y1.interest],
+    [L("地税","Property tax"), y1.ptax],
+    [L("维修","Maintenance"), y1.maint],
+    ["HOA", y1.hoa],
+    [L("房屋保险","Insurance"), y1.ins],
+    ["PMI", y1.pmi],
+    [L("额外杂费","Extra utilities"), y1.xutil],
+    [L("交易成本摊销","Transaction costs, amortized"), txnPerYr]
+  ].filter(function(s){ return s[1] > 0.5; });
+  var alphas = [.95,.78,.62,.49,.38,.29,.21,.14];
+  segs.forEach(function(s, i){ s[2] = alphas[i]; });
+  var burnGross = segs.reduce(function(a, s){ return a + s[1]; }, 0);
+  var burnNet = burnGross - y1.taxBen;
+  var rentBurn = y1.rent + c.rins*12 - y1.stBenR;
+  var scale = Math.max(burnGross, y1.rent + c.rins*12, 1);
+  function segBg(col, a){ return "color-mix(in srgb, var("+col+") "+(a*100)+"%, transparent)"; }
+
+  $("burn").innerHTML =
+    '<div class="burn-row"><div class="who">'+L("买房","Buy")+'</div><div>'+
+      '<div class="burn-track">'+segs.map(function(s){
+        return '<div class="burn-seg" style="width:'+(s[1]/scale*100)+'%;background:'+segBg("--buy", s[2])+'" title="'+s[0]+' '+usd(s[1]/12)+'"></div>';
+      }).join("")+'</div>'+
+      '<div class="burn-cap"><span>'+L("毛成本 ","Gross ")+'<span class="amt">'+usd(burnGross/12)+'</span>'+L(" /月　减税务抵扣 "," /mo · minus tax savings ")+'<span class="amt">−'+usd(y1.taxBen/12)+'</span></span>'+
+      '<span>'+L("净 ","Net ")+'<span class="amt" style="color:var(--buy)">'+usd(burnNet/12)+'</span>'+L(" /月"," /mo")+'</span></div>'+
+    '</div></div>'+
+    '<div class="burn-row"><div class="who">'+L("租房","Rent")+'</div><div>'+
+      '<div class="burn-track"><div class="burn-seg" style="width:'+(y1.rent/scale*100)+'%;background:'+segBg("--rent", .95)+'" title="'+L("房租","Rent")+'"></div>'+
+      '<div class="burn-seg" style="width:'+(c.rins*12/scale*100)+'%;background:'+segBg("--rent", .4)+'" title="'+L("租客保险","Renter's insurance")+'"></div></div>'+
+      '<div class="burn-cap"><span>'+L("房租 ","Rent ")+'<span class="amt">'+usd(y1.rent/12)+'</span>'+L(" ＋ 租客保险 "," + insurance ")+'<span class="amt">'+usd(c.rins)+'</span>'+
+      (y1.stBenR > 0 ? L(" − 州税抵扣 "," − state credit ")+'<span class="amt">'+usd(y1.stBenR/12)+'</span>' : '')+'</span>'+
+      '<span>'+L("净 ","Net ")+'<span class="amt" style="color:var(--rent)">'+usd(rentBurn/12)+'</span>'+L(" /月"," /mo")+'</span></div>'+
+    '</div></div>';
+
+  $("burnlegend").innerHTML = segs.map(function(s){
+    return '<span><i class="swatch" style="background:'+segBg("--buy", s[2])+'"></i>'+s[0]+' '+N(usd(s[1]/12))+'</span>';
+  }).join("");
+
+  var gap = (burnNet - rentBurn)/12;
+  $("burnkey").innerHTML =
+    '<span>'+L("拥有比租住每月"+(gap >= 0 ? "多" : "少")+"烧 ", "Owning burns ")+'<b class="num">'+usd(Math.abs(gap))+'</b>'+L(""," "+(gap >= 0 ? "more" : "less")+" per month than renting")+'</span>'+
+    '<span>'+L("拥有成本占房价 ","Owning costs ")+'<b class="num">'+pct(burnNet/Math.max(c.price,1), 2)+'</b>'+L("/年，租金占 "," of value / yr; rent is ")+'<b class="num">'+pct(rentBurn/Math.max(c.price,1), 2)+'</b>'+L("/年","")+'</span>'+
+    '<span>'+L("另有首付 ","Plus the opportunity cost of the ")+'<b class="num">'+comp(c.down)+'</b>'+L(" 的机会成本约 "," down payment: ~")+'<b class="num">'+usd(c.down*c.ret/12)+'</b>'+L("/月","/mo")+'</span>';
+
+  /* --- sensitivity --- */
+  var apprs = [0,.01,.02,.03,.04,.05,.06,.08];
+  if(apprs.every(function(a){ return Math.abs(a - c.appr) > 0.0001; })){ apprs.push(c.appr); apprs.sort(function(a, b){ return a - b; }); }
+  var years = [3,5,7,10,15,20,30];
+  var cells = apprs.map(function(a){
+    var rr = run(Object.assign({}, c, {appr:a}));
+    return years.map(function(y){ return rr[y-1].adv; });
+  });
+  var mx = 1;
+  cells.forEach(function(row){ row.forEach(function(v){ mx = Math.max(mx, Math.abs(v)); }); });
+  var html = '<thead><tr><th>'+L("房价年涨幅","Appreciation")+'</th>'+years.map(function(y){ return '<th>'+yrs(y)+'</th>'; }).join("")+'</tr></thead><tbody>';
+  cells.forEach(function(row, ri){
+    var cur = Math.abs(apprs[ri] - c.appr) < 0.0001;
+    html += '<tr><td class="num"'+(cur ? ' style="font-weight:600;color:var(--ink)"' : '')+'>'+pct(apprs[ri], 2)+(cur ? L(" ←当前"," ← yours") : "")+'</td>';
+    row.forEach(function(v){
+      var t = Math.min(1, Math.log(1 + Math.abs(v)/5000)/Math.log(1 + mx/5000));
+      var alpha = 0.06 + 0.52*t;
+      var col = v > 0 ? "--buy" : "--rent";
+      var bg = Math.abs(v) < mx*0.006 ? "transparent" : segBg(col, alpha);
+      html += '<td><span class="cell" style="background:'+bg+'">'+comp(v)+'</span></td>';
+    });
+    html += '</tr>';
+  });
+  $("sens").innerHTML = html + '</tbody>';
+
+  /* --- checklist --- */
+  var mo = r.pmt + y1.ptax/12 + c.hoa + c.ins + y1.pmi/12;
+  var dti = c.income > 0 ? mo*12/c.income : Infinity;
+  var ST = {ok:L("通过","Pass"), mid:L("临界","Borderline"), no:L("不通过","Fail"), self:L("自查","Self-check")};
+  var checks = [];
+  (function(){
+    var s = p2r < 15 ? "ok" : (p2r <= 20 ? "mid" : "no");
+    checks.push([s, L("价租比低于 15x","Price-to-rent below 15x"),
+      L("同一套房，买价 ÷ 一年租金。低于 15x 通常偏向买，高于 20x 通常租更划算。你现在是 ","Purchase price ÷ one year of rent for the same home. Under 15x usually favors buying; over 20x usually favors renting. Yours is ")+'<b class="num">'+(isFinite(p2r) ? p2r.toFixed(1)+"x" : "—")+'</b>'+L("。","."), ST[s]]);
+  })();
+  (function(){
+    var s = be === null ? "no" : (hold >= be ? "ok" : "mid");
+    checks.push([s, L("住够摊销交易成本的年头","You'll stay long enough to recoup transaction costs"),
+      L("买卖两头约 ","Buying and selling cost about ")+'<b class="num">'+pct(c.bcc + c.scc, 1)+'</b>'+L(" 的成本要靠时间摊平。"," combined, and only time spreads that out. ")+
+      (be ? L("按当前假设第 ","On these assumptions buying breaks even in year ")+'<b class="num">'+be+'</b>'+L(" 年回本，你打算住 ",", and you plan to stay ")+'<b class="num">'+yrs(hold)+'</b>'+L("。",".")
+          : L("按当前假设，30 年内都摊不平。","On these assumptions it never breaks even within 30 years.")),
+      s === "ok" ? ST.ok : (s === "mid" ? L("不够久","Too short") : ST.no)]);
+  })();
+  (function(){
+    var v = need.out ? (need.out === "above" ? 1 : -1) : need.v;
+    var s = v <= 0.045 ? "ok" : (v <= 0.06 ? "mid" : "no");
+    checks.push([s, L("打平所需的房价涨幅在历史区间内","Break-even appreciation is within historical norms"),
+      L("住 "+hold+" 年打平需要房价每年涨 ","To break even over "+yrs(hold)+", prices need to rise ")+'<b class="num">'+needTxt+'</b>'+L("。全美长期名义涨幅约 4%。要求明显高于这个水平，等于在赌一段超常行情。"," a year. Long-run U.S. home prices have risen about 4% a year nominally; needing much more means betting on an unusual boom."),
+      s === "ok" ? L("合理","Reasonable") : (s === "mid" ? L("偏乐观","Optimistic") : L("需要奇迹","Needs a boom"))]);
+  })();
+  (function(){
+    var s = c.down >= 0.2*c.price ? "ok" : "no";
+    checks.push([s, L("首付达到 20%，免 PMI","Down payment of 20%+ (no PMI)"),
+      L("你的首付是 ","Your down payment is ")+'<b class="num">'+pct(c.price > 0 ? c.down/c.price : 0, 0)+'</b>'+
+      (s === "ok" ? L("，不需要按揭保险。",", so no mortgage insurance.") : L("，第一年 PMI 约 ",". PMI adds about ")+'<b class="num">'+usd(y1.pmi/12)+'</b>'+L("/月，直到贷款降到原房价的 78%。","/mo in year one, until the loan falls to 78% of the original price.")),
+      s === "ok" ? ST.ok : L("要付 PMI","PMI due")]);
+  })();
+  (function(){
+    var s = dti <= 0.28 ? "ok" : (dti <= 0.36 ? "mid" : "no");
+    checks.push([s, L("住房支出 ≤ 税前收入 28%","Housing cost ≤ 28% of gross income"),
+      L("月供＋地税＋保险＋HOA＋PMI 约 ","Mortgage + tax + insurance + HOA + PMI ≈ ")+'<b class="num">'+usd(mo)+'</b>'+L("/月，占税前月收入 ","/mo, or ")+'<b class="num">'+(isFinite(dti) ? pct(dti, 0) : "—")+'</b>'+L("。传统安全线 28%；加上其他债务不宜超过 36%。"," of gross monthly income. The classic guideline is 28%, and 36% including other debt."),
+      s === "ok" ? ST.ok : (s === "mid" ? L("偏紧","Tight") : L("超标","Over"))]);
+  })();
+  checks.push(["mid", L("拿出首付后仍有 6–12 个月应急金","6–12 months of reserves left after closing"),
+    L("首付加过户费一共要拿出 ","Down payment plus closing costs take ")+'<b class="num">'+comp(c.down + c.price*c.bcc)+'</b>'+L("，之后账上还剩多少？住房支出约 ",". What's left afterwards? Housing costs run ")+'<b class="num">'+usd(mo)+'</b>'+L("/月，失业半年需要 ","/mo — six months without income means ")+'<b class="num">'+comp(mo*6)+'</b>'+L(" 兜底。房子是流动性最差的资产，偏偏在你最需要钱的时候最难卖。"," of cushion. A house is your least liquid asset, and hardest to sell exactly when you need cash."), ST.self]);
+  checks.push(["mid", L("未来几年工作和居住地不会变","Your job and location are stable for years"),
+    L("换工作、换城市、家庭变化——任何一项都可能把持有年限砍到盈亏平衡点以下。这不是数学问题，是你对自己未来几年的判断。","A new job, a new city, a change in family — any of them can cut your stay short of break-even. That's not a math question; it's your read on the next few years."), ST.self]);
+  checks.push(["mid", L("投资回报假设越高，租房越有利","A higher return assumption favors renting"),
+    L("租房那一侧的复利速度就是你填的投资回报 ","The renter's side compounds at your return assumption of ")+'<b class="num">'+pct(c.ret, 1)+'</b>'+L("。假设越高，占用 ",". The higher it is, the more it costs to tie up ")+'<b class="num">'+comp(c.down)+'</b>'+L(" 首付的代价就越大。<em>把回报调高不会让买房更划算，只会更不划算。</em>"," in a down payment. <em>Raising the return never makes buying look better — only worse.</em>"), L("看假设","Check")]);
+
+  $("checks").innerHTML = checks.map(function(k){
+    return '<div class="check"><span class="dot '+k[0]+'"></span><span><span class="t">'+k[1]+'</span><span class="d">'+k[2]+'</span></span><span class="verd '+k[0]+'">'+k[3]+'</span></div>';
+  }).join("");
+
+  /* --- prose: missed items --- */
+  var fsTxt = c.filing === "mfj" ? L("已婚合报","married filing jointly") : L("单身","single");
+  var txnTot = c.price*c.bcc + c.price*Math.pow(1 + c.appr, hold)*c.scc;
+  var lev = c.down > 0 ? c.price/c.down : Infinity;
+  var taxP;
+  var loanTxt = loan > P.DEBT_CAP
+    ? L("，你的贷款 "+N(comp(loan))+" 超出上限，只有 "+N(pct(P.DEBT_CAP/loan, 0))+" 的利息可抵",
+        "; your "+N(comp(loan))+" loan exceeds it, so only "+N(pct(P.DEBT_CAP/loan, 0))+" of the interest counts")
+    : L("，你的贷款 "+N(comp(loan))+" 在上限之内", "; your "+N(comp(loan))+" loan is within the cap");
+  var fedYr1 = y1.fedBen;
+  taxP = L(
+    "<strong>税务抵扣（2026 年规则）。</strong>房贷利息可抵扣的贷款本金上限是 "+N("$750K")+loanTxt+"。SALT（州税＋地税）抵扣上限 2026 年是 "+N("$40,400")+"，MAGI 超过 "+N("$505K")+" 后按超出部分的 30% 递减（最低 "+N("$10K")+"）；按你的收入是 "+N(usd(y1.saltCap))+"。按现行法律，<strong>2030 年起 SALT 上限回到 "+N("$10K")+"</strong>，模型已计入。"+fsTxt+"标准扣除 "+N(usd(P.STD[c.filing]))+"。只有逐项扣除超过标准扣除的部分才真正省税——"+
+      (fedYr1 > 1 ? "按你的数字，第一年买房比租房多省联邦税约 "+N(usd(fedYr1))+"。" : "按你的数字，逐项扣除没有明显超过标准扣除，买房几乎拿不到联邦税务好处。")+
+      (y1.stBenB > 0 ? "另有州地税抵扣约 "+N(usd(y1.stBenB))+"。" : ""),
+    "<strong>Tax deductions (2026 rules).</strong> Mortgage interest is deductible on up to "+N("$750K")+" of debt"+loanTxt+". The SALT deduction (state income + property tax) is capped at "+N("$40,400")+" in 2026, reduced by 30% of MAGI above "+N("$505K")+" (floor "+N("$10K")+") — "+N(usd(y1.saltCap))+" at your income. Under current law <strong>the SALT cap drops back to "+N("$10K")+" in 2030</strong>, and the model includes that. The "+fsTxt+" standard deduction is "+N(usd(P.STD[c.filing]))+". Only itemized deductions above the standard deduction actually save tax — "+
+      (fedYr1 > 1 ? "with your numbers, owning saves about "+N(usd(fedYr1))+" more in federal tax than renting in year one." : "with your numbers, itemizing barely beats the standard deduction, so owning gets almost no federal tax benefit.")+
+      (y1.stBenB > 0 ? " The state property-tax deduction adds about "+N(usd(y1.stBenB))+"." : "")
+  );
+  var levTxt = isFinite(lev)
+    ? L("<strong>杠杆是双向的。</strong>房价涨 "+N(pct(c.appr, 1))+" 是对全额 "+N(comp(c.price, true))+" 算的，对你 "+N(comp(c.down))+" 的首付而言是 "+N(pct(c.appr*lev, 0))+" 的毛回报——这是买房真正的数学优势。但同样的杠杆，房价跌 10% 你的首付就少了 "+N(pct(Math.min(0.1*lev, 9.99), 0))+(0.1*lev >= 1 ? "，全部亏光还倒欠" : "")+"，而且房贷不会因为房价跌而减少。",
+        "<strong>Leverage cuts both ways.</strong> A "+N(pct(c.appr, 1))+" rise applies to the full "+N(comp(c.price, true))+", which is a "+N(pct(c.appr*lev, 0))+" gross return on your "+N(comp(c.down))+" down payment — owning's one real mathematical edge. The same leverage means a 10% price drop wipes out "+N(pct(Math.min(0.1*lev, 9.99), 0))+" of your equity"+(0.1*lev >= 1 ? " and then some" : "")+", and the mortgage doesn't shrink when prices do.")
+    : L("<strong>杠杆。</strong>全款买房没有杠杆，房价涨跌一比一反映在你的净值上。","<strong>Leverage.</strong> With no mortgage there's no leverage — price moves hit your net worth one-for-one.");
+
+  $("missed").innerHTML = [
+    L("<strong>买卖两头的交易成本。</strong>买入过户费约房价 "+N("2–5%")+"，卖出中介佣金加过户税约 "+N("5–8%")+"。按你的参数，住 "+hold+" 年后买卖两头合计约 "+N(comp(txnTot))+"。这笔钱在你按下「买」的那一刻就注定要付，只能靠持有时间摊销——这就是「住多久」成为核心变量的原因。",
+      "<strong>Transaction costs on both ends.</strong> Closing costs run about "+N("2–5%")+" of the price when you buy; commissions plus transfer tax about "+N("5–8%")+" when you sell. With your inputs, the round trip over "+yrs(hold)+" costs roughly "+N(comp(txnTot))+". You commit to it the moment you buy, and only time spreads it out — which is why how long you stay is the key variable."),
+    L("<strong>保险和真实的维修支出。</strong>HOA 只覆盖公共部分。屋顶、HVAC、热水器、外墙、家电，长期年均约房价的 "+N("1–2%")+"（新房低、老房高）。按你填的 "+N(pct(c.maint, 1))+"，第一年约 "+N(usd(y1.maint/12))+"/月。",
+      "<strong>Insurance and real maintenance.</strong> HOA dues only cover common areas. Roof, HVAC, water heater, siding, appliances — over the long run they average about "+N("1–2%")+" of the home's value a year (less for new builds, more for older homes). At your "+N(pct(c.maint, 1))+", that's about "+N(usd(y1.maint/12))+"/mo in year one."),
+    L("<strong>每月现金流差额的机会成本。</strong>很多人只算首付的机会成本，但第一年买房的每月总支出比租房"+(y1.diffMo >= 0 ? "高" : "低")+"出 "+N(usd(Math.abs(y1.diffMo)))+"——这笔差额每个月都在另一边复利。模型让花得少的那一方把差额投进组合，按同样的回报率增长。",
+      "<strong>The opportunity cost of the monthly gap.</strong> Most people count the down payment's opportunity cost but not this: in year one, owning costs "+N(usd(Math.abs(y1.diffMo)))+" a month "+(y1.diffMo >= 0 ? "more" : "less")+" than renting, and that gap compounds every month on the other side. The model has whichever side spends less invest the difference at the same return."),
+    taxP,
+    L("<strong>卖房时的资本利得豁免。</strong>自住满 5 年中的 2 年，"+fsTxt+"可豁免 "+N(comp(P.EXCL[c.filing]))+" 增值。超出部分按长期资本利得＋州税征收。不满 2 年卖出没有豁免（因工作调动等可部分豁免，模型未计入）。",
+      "<strong>The capital-gains exclusion.</strong> Live there 2 of the last 5 years and "+N(comp(P.EXCL[c.filing]))+" of gain is tax-free ("+fsTxt+"). Anything above is taxed as a long-term gain plus state tax. Sell within 2 years and there's no exclusion (partial exclusions for job moves aren't modeled)."),
+    levTxt
+  ].map(function(s){ return "<p>"+s+"</p>"; }).join("");
+
+  /* --- prose: assumptions --- */
+  var r10 = c.rent*Math.pow(1 + c.rgrow, 10), r20 = c.rent*Math.pow(1 + c.rgrow, 20);
+  $("assume").innerHTML = [
+    L("<strong>房租涨幅。</strong>全美长期房租涨幅约 "+N("3–4%")+"/年。按你填的 "+N(pct(c.rgrow, 1))+"，十年后月租 "+N(usd(r10))+"，二十年后 "+N(usd(r20))+"。房租的天花板是租客的收入——涨幅长期明显高于工资增长，很难持续。",
+      "<strong>Rent growth.</strong> Long-run U.S. rent growth is about "+N("3–4%")+" a year. At your "+N(pct(c.rgrow, 1))+", rent reaches "+N(usd(r10))+"/mo in ten years and "+N(usd(r20))+"/mo in twenty. Rent is ultimately capped by tenants' incomes; growth far above wage growth rarely lasts."),
+    L("<strong>投资回报。</strong>标普 500 长期名义回报约 "+N("10%")+"，扣除税和费用后约 "+N("7–8%")+"。关键在于：<em>回报假设越高，结论越倒向租房</em>——因为不买房省下的首付和月度差额正是按这个速度复利。很多人以为高回报假设是在给买房加分，其实正相反。",
+      "<strong>Investment return.</strong> The S&amp;P 500's long-run nominal return is about "+N("10%")+", roughly "+N("7–8%")+" after taxes and fees. The key point: <em>the higher this number, the more the answer tilts toward renting</em>, because the down payment and the monthly savings compound at exactly this rate. People often assume a high return helps the case for buying; it does the opposite."),
+    L("<strong>房价涨幅的口径。</strong>两边必须一致：要么都用名义，要么都用实际（扣通胀）。全美房价长期名义涨幅约 "+N("4%")+"，实际约 "+N("1%")+" 出头。如果房价填实际涨幅、股票填名义回报，结论会被系统性地推向租房。",
+      "<strong>Keep appreciation consistent.</strong> Use nominal numbers on both sides, or real (inflation-adjusted) on both. Long-run U.S. home prices have risen about "+N("4%")+" a year nominally, a bit over "+N("1%")+" real. Pairing a real home-price number with a nominal stock return biases the result toward renting.")
+  ].map(function(s){ return "<p>"+s+"</p>"; }).join("");
+
+  /* --- year table --- */
+  var th = [L("年","Yr"), L("年供 P&I","P&I / yr"), L("其中利息","Interest"), L("地税","Prop. tax"), L("维修","Maint."), "PMI", L("税务抵扣","Tax savings"),
+            L("买房年支出","Own cost / yr"), L("当年月租","Rent / mo"), L("租房年支出","Rent cost / yr"), L("月度差额","Gap / mo"),
+            L("房屋市值","Home value"), L("贷款余额","Loan bal."), L("买房净值","Buy NW"), L("租房净值","Rent NW"), L("买 − 租","Buy − rent")];
+  var yh = '<thead><tr>'+th.map(function(t){ return '<th>'+t+'</th>'; }).join("")+'</tr></thead><tbody>';
+  rows.forEach(function(o){
+    yh += '<tr'+(o.y === hold ? ' class="mark"' : '')+'>'+
+      '<td>'+o.y+'</td><td>'+usd(o.pi)+'</td><td>'+usd(o.interest)+'</td><td>'+usd(o.ptax)+'</td>'+
+      '<td>'+usd(o.maint)+'</td><td>'+usd(o.pmi)+'</td><td>'+usd(o.taxBen)+'</td><td>'+usd(o.buyCash)+'</td>'+
+      '<td>'+usd(o.rent/12)+'</td><td>'+usd(o.rentCash)+'</td><td>'+usd(o.diffMo)+'</td>'+
+      '<td>'+usd(o.hv)+'</td><td>'+usd(o.bal)+'</td><td>'+usd(o.buyNW)+'</td><td>'+usd(o.rentNW)+'</td>'+
+      '<td style="color:'+(o.adv > 0 ? 'var(--buy)' : 'var(--rent)')+'">'+usd(o.adv)+'</td></tr>';
+  });
+  $("yr").innerHTML = yh + '</tbody>';
+
+  scheduleURL();
+}
+
+/* ============================ URL STATE ============================ */
+var DEFAULTS = {}, urlTimer = null;
+function scheduleURL(){ clearTimeout(urlTimer); urlTimer = setTimeout(writeURL, 250); }
+function queryString(withLang){
+  var q = [];
+  FIELDS.forEach(function(f){
+    var v = $(f.id).value;
+    if(AUTO_IDS.indexOf(f.id) >= 0){ if(!AUTO[f.id]) q.push(f.id+"="+encodeURIComponent(v)); return; }
+    if(String(v) !== String(DEFAULTS[f.id]) && !(parseFloat(v) === parseFloat(DEFAULTS[f.id]))) q.push(f.id+"="+encodeURIComponent(v));
+  });
+  if(withLang) q.push("lang="+LANG);
+  return q.join("&");
+}
+function writeURL(){
+  var qs = queryString(false);
+  try{ history.replaceState(null, "", location.pathname + (qs ? "?"+qs : "") + location.hash); }catch(e){}
+}
+function readURL(){
+  var params;
+  try{ params = new URLSearchParams(location.search); }catch(e){ return {}; }
+  FIELDS.forEach(function(f){
+    if(!params.has(f.id)) return;
+    var v = params.get(f.id);
+    if(f.type === "select"){ if(f.opts.some(function(o){ return o[0] === v; })) $(f.id).value = v; return; }
+    if(v === "" || isNaN(parseFloat(v))) return;
+    $(f.id).value = parseFloat(v);
+    if(AUTO_IDS.indexOf(f.id) >= 0) AUTO[f.id] = false;
+  });
+  return {lang: params.get("lang")};
+}
+
+/* ============================ LANGUAGE / THEME ============================ */
+function setLang(lang, persist){
+  LANG = lang === "en" ? "en" : "zh";
+  document.documentElement.lang = LANG === "en" ? "en" : "zh-CN";
+  document.title = L("买房还是租房？全成本计算器 · Rent vs Buy", "Rent vs Buy Calculator · Full-cost, after-tax");
+  [].forEach.call(document.querySelectorAll("#langseg button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === LANG); });
+  FIELDS.forEach(function(f){
+    if(f.type !== "select") return;
+    [].forEach.call($(f.id).options, function(o, i){ o.textContent = LANG === "en" ? f.opts[i][2] : f.opts[i][1]; });
+  });
+  if(persist) store("rvb-lang", LANG);
+  applyAuto();
+  render();
+}
+function effectiveDark(){
+  var t = document.documentElement.getAttribute("data-theme");
+  if(t) return t === "dark";
+  return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+}
+
+/* ============================ WIRE ============================ */
+buildConsole();
+FIELDS.forEach(function(f){ DEFAULTS[f.id] = f.v; });
+var saved = store("rvb-theme");
+if(saved === "light" || saved === "dark") document.documentElement.setAttribute("data-theme", saved);
+
+var urlOpts = readURL();
+applyAuto();
+AUTO_IDS.forEach(function(id){ if(DEFAULTS[id] === undefined) DEFAULTS[id] = $(id).value; });
+
+FIELDS.forEach(function(f){
+  var e = $(f.id);
+  var h = function(){
+    if(AUTO_IDS.indexOf(f.id) >= 0){ AUTO[f.id] = false; }
+    if(f.id === "income" || f.id === "filing" || f.id === "strate" || AUTO_IDS.indexOf(f.id) >= 0) applyAuto();
+    render();
+  };
+  e.addEventListener("input", h);
+  if(f.type === "select") e.addEventListener("change", h);
+});
+$("fields").addEventListener("click", function(ev){
+  var b = ev.target.closest("[data-auto]"); if(!b) return;
+  AUTO[b.getAttribute("data-auto")] = true;
+  applyAuto(); render();
+});
+$("span").addEventListener("click", function(ev){
+  var b = ev.target.closest("button"); if(!b) return;
+  SPAN = b.getAttribute("data-s");
+  [].forEach.call(this.querySelectorAll("button"), function(x){ x.classList.toggle("on", x === b); });
+  render();
+});
+$("reset").addEventListener("click", function(){
+  FIELDS.forEach(function(f){ if(AUTO_IDS.indexOf(f.id) < 0) $(f.id).value = DEFAULTS[f.id]; });
+  AUTO_IDS.forEach(function(id){ AUTO[id] = true; });
+  applyAuto(); render();
+});
+$("langseg").addEventListener("click", function(ev){
+  var b = ev.target.closest("button"); if(!b) return;
+  setLang(b.getAttribute("data-lang"), true);
+});
+$("theme").addEventListener("click", function(){
+  var next = effectiveDark() ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  store("rvb-theme", next);
+});
+$("share").addEventListener("click", function(){
+  var btn = this, qs = queryString(true);
+  var url = location.origin + location.pathname + "?" + qs;
+  var done = function(ok){
+    var old = btn.innerHTML;
+    btn.innerHTML = ok ? bi("已复制 ✓","Copied ✓") : bi("复制失败","Copy failed");
+    setTimeout(function(){ btn.innerHTML = old; }, 1600);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(function(){ done(true); }, function(){ fallbackCopy(url, done); });
+  } else fallbackCopy(url, done);
+});
+function fallbackCopy(text, cb){
+  var ta = document.createElement("textarea");
+  ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  var ok = false; try{ ok = document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta); cb(ok);
+}
+
+if(window.matchMedia){
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  if(mq.addEventListener) mq.addEventListener("change", render);
+}
+new MutationObserver(function(){ render(); }).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+if(window.ResizeObserver){
+  var rzT = null, lastW = 0;
+  new ResizeObserver(function(){
+    var w = $("cbox").clientWidth;
+    if(Math.abs(w - lastW) < 2) return;
+    lastW = w; clearTimeout(rzT);
+    rzT = setTimeout(function(){ if(LAST) drawChart(LAST[0], LAST[1], LAST[2]); }, 80);
+  }).observe($("cbox"));
+}
+if(window.IntersectionObserver){
+  new IntersectionObserver(function(es){
+    es.forEach(function(e){ $("mbar").classList.toggle("show", e.isIntersecting); });
+  }, {rootMargin:"0px 0px -35% 0px"}).observe($("console"));
+}
+
+var initLang = urlOpts.lang || store("rvb-lang") || ((navigator.language || "").toLowerCase().indexOf("zh") === 0 ? "zh" : "en");
+setLang(initLang, false);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ if(LAST) drawChart(LAST[0], LAST[1], LAST[2]); });
+})();
+</script>
+</body>
+</html>
